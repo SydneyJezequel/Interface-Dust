@@ -1,0 +1,1 @@
+Projet simple pour utiliser un agent Dust depuis une petite application externe.
