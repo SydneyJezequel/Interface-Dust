@@ -13,7 +13,7 @@ EMPLOYEES = {
 # Définition de l'outil qui sera exposé à Dust
 @mcp.tool()
 def get_employee_info(name: str) -> str:
-    """Récupère les informations RH d'un employé via son prénom."""
+    """ Récupère les informations RH d'un employé via son prénom. """
     name_lower = name.lower()
     if name_lower in EMPLOYEES:
         emp = EMPLOYEES[name_lower]
@@ -22,4 +22,4 @@ def get_employee_info(name: str) -> str:
 
 if __name__ == "__main__":
     # Lancement du serveur avec le protocole SSE (Server-Sent Events)
-    mcp.run(transport="sse", host="0.0.0.0", port=8000)
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=8000)
