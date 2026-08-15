@@ -1,5 +1,6 @@
 from mcp.server import MCPServer
 
+
 # Initialisation du serveur MCP
 mcp = MCPServer("ServeurRH")
 
