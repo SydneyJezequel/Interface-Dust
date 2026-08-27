@@ -2,7 +2,7 @@
 
 
 class EmployeeNotFoundError(Exception):
-    """ Absence d'employé """
+    """ Gestion des erreurs lié à la BDD et l'Api """
 
 
     def __init__(self, name: str):

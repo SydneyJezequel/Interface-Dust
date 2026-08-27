@@ -20,10 +20,8 @@ class EmployeeService:
 
     def get_employee(self, name: str) -> Employee:
         """ Récupère un employé par son nom. """
-
         if not name or not name.strip():
             raise EmployeeNotFoundError(name)
-
         employe = self._employee_repo.find_by_name(name)
         if employe is None:
             raise EmployeeNotFoundError(name)
@@ -41,7 +39,6 @@ class EmployeeService:
 
     def get_manager_chain(self, name: str, max_depth: int = 10) -> list[Employee]:
         """ Retourne la liste des managers d'un employé, du plus proche au plus haut placé. """
-
         chain: list[Employee] = []
         current = self.get_employee(name)
         for _ in range(max_depth):

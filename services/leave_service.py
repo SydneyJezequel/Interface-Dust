@@ -10,6 +10,8 @@ from models.leave_calculation import LeaveCalculation
 
 
 class LeaveService:
+    """ Service qui calcule le nombre de jours ouvrés de congé pris par un employé. """
+
 
 
     def __init__(self, employee_repo: EmployeeRepository, holiday_client: NagerHolidayClient):
@@ -20,7 +22,8 @@ class LeaveService:
 
 
     async def calculer_jours_ouvres(self, nom: str, debut: date, fin: date) -> LeaveCalculation:
-        """ Calcul des jours ouvrés """
+        """ Calcule le nombre de jours ouvrés de congé pour un employé sur une période donnée. """
+
         employe = self._employee_repo.find_by_name(nom)
         if employe is None:
             raise EmployeeNotFoundError(nom)
@@ -56,6 +59,7 @@ class LeaveService:
 
     @staticmethod
     def _compter_jours_ouvres(debut: date, fin: date, feries: set[date]) -> tuple[int, list[date]]:
+        """ Calcule le nombre de jours ouvrés et la liste des jours fériés dans la période. """
         jours_ouvres = 0
         feries_dans_periode = []
         jour = debut

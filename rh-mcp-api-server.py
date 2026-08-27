@@ -19,26 +19,17 @@ mcp = MCPServer("ServeurRH")
 # Initialisation de la BDD SQLite :
 DB_PATH = Path(__file__).parent / "rh_database.db"
 
-# Initialisation de l'API des jours fériés (Nager.Date) :
+# Initialisation de l'Api des jours fériés (Nager.Date) :
 load_dotenv()
 NAGER_BASE_URL = os.environ["NAGER_BASE_URL"]
 
-
-
-
-""" A supprimer ???????? """
-# Cache mémoire très simple : { (pays_code, annee): [ {..jour ferie..}, ... ] }
-# Evite de rappeler l'API à chaque question pour le même pays/année.
-# Volontairement en mémoire (pas de TTL) : suffisant pour une session de
-# démo/dev. A remplacer par un cache avec expiration si le serveur tourne
-# en continu sur plusieurs jours (les jours fériés d'une année ne changent
-# de toute façon jamais une fois publiés).
+# Initialisation du cache :
 _holidays_cache: dict[tuple[str, int], list[dict]] = {}
 
 
 
 def get_connection() -> sqlite3.Connection:
-    """ Ouvre une connexion à la BDD et configure le retour des lignes. """
+    """ Ouvre une connexion à la BDD. """
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -51,10 +42,6 @@ def _get_employee_row(name: str) -> sqlite3.Row | None:
     conn = get_connection()
     try:
         cur = conn.cursor()
-        # LEFT JOIN sur la table elle-même pour récupérer le nom du manager
-        # (et pas seulement son id). LEFT JOIN plutôt que JOIN classique
-        # car le CEO n'a pas de manager (manager_id NULL) : un JOIN
-        # simple l'aurait exclu du résultat.
         cur.execute(
             """
             SELECT e.id, e.name, e.role, e.email, e.manager_id,
@@ -134,9 +121,7 @@ def get_team_members(manager: str) -> str:
 
 @mcp.tool()
 async def get_public_holidays(pays_code: str, annee: int) -> list[dict]:
-    """ Récupère la liste des jours fériés d'un pays pour une année donnée,
-    via l'API publique Nager.Date. Le résultat est mis en cache en mémoire
-    par (pays_code, année) pour éviter les appels réseau redondants. """
+    """ Récupère la liste des jours fériés d'un pays pour une année donnée, via l'Api Nager Date. """
     pays_code = pays_code.strip().upper()
     cache_key = (pays_code, annee)
 
@@ -161,10 +146,7 @@ async def get_public_holidays(pays_code: str, annee: int) -> list[dict]:
 
 @mcp.tool()
 async def calculer_jours_ouvres_conges(nom: str, date_debut: str, date_fin: str) -> str:
-    """ Croise la bdd RH (employé + pays) avec l'API des jours fériés pour
-    calculer le nombre réel de jours ouvrés consommés par une demande de
-    congés. """
-
+    """ Calcule le nombre de jours ouvrés consommés par une demande de congés, en excluant week-ends et jours fériés du pays de l'employé. """
 
     # 1. Validation des dates :
     try:
@@ -175,7 +157,6 @@ async def calculer_jours_ouvres_conges(nom: str, date_debut: str, date_fin: str)
     if fin < debut:
         return "La date de fin ne peut pas être antérieure à la date de début."
 
-
     # 2. Récupération des données de l'employé :
     try:
         employe = _get_employee_row(nom)
@@ -185,16 +166,12 @@ async def calculer_jours_ouvres_conges(nom: str, date_debut: str, date_fin: str)
         return f"Employé '{nom}' introuvable dans la base de données."
     pays_code = employe["pays_code"] or "FR"
 
-
     # 3. Récupération des jours fériés :
     feries_dates: set[date] = set()
     erreur_api = None
     for annee in range(debut.year, fin.year + 1):
         feries = await get_public_holidays(pays_code, annee)
         if feries and isinstance(feries[0], dict) and "error" in feries[0]:
-            # On garde une trace de l'erreur mais on continue : mieux vaut
-            # un calcul dégradé (sans certains jours fériés) qu'un échec
-            # total de l'outil.
             erreur_api = feries[0]["error"]
             continue
         for jour in feries:
@@ -203,20 +180,18 @@ async def calculer_jours_ouvres_conges(nom: str, date_debut: str, date_fin: str)
             except (KeyError, ValueError):
                 continue
 
-
     # 4. Calcul des jours ouvrés (hors week-ends + jours fériés) :
     jours_ouvres = 0
     feries_dans_periode = []
     jour_courant = debut
     while jour_courant <= fin:
-        est_weekend = jour_courant.weekday() >= 5  # 5 = samedi, 6 = dimanche
+        est_weekend = jour_courant.weekday() >= 5
         est_ferie = jour_courant in feries_dates
         if est_ferie:
             feries_dans_periode.append(jour_courant.isoformat())
         if not est_weekend and not est_ferie:
             jours_ouvres += 1
         jour_courant += timedelta(days=1)
-
 
     # 5. Construction de la réponse :
     nom_affiche = employe["name"].capitalize()
@@ -258,7 +233,6 @@ if __name__ == "__main__":
             f"Base introuvable : {DB_PATH}. "
             "Lance d'abord 'python init_db.py' pour la créer et la peupler."
         )
-    # Lancement du serveur avec le protocole SSE (Server-Sent Events)
+    # Lancement du serveur :
     mcp.run(transport="streamable-http", host="0.0.0.0", port=8000)
-
 

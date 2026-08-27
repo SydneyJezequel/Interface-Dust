@@ -7,6 +7,8 @@ from exceptions import HolidayApiError
 
 
 class NagerHolidayClient:
+    """ Classe en charge de l'Api Nager """
+
 
 
     def __init__(self, base_url: str):
@@ -17,7 +19,7 @@ class NagerHolidayClient:
 
 
     async def get_public_holidays(self, pays_code: str, annee: int) -> list[dict]:
-        """ Récupération des congés par pays dans l'API Nager. """
+        """ Récupération des congés par pays dans l'Api Nager. """
         pays_code = pays_code.strip().upper()
         key = (pays_code, annee)
         if key in self._cache:

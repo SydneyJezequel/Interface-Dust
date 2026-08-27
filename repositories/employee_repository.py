@@ -8,7 +8,7 @@ from models.employee import Employee
 
 
 class EmployeeRepository:
-    """ Repository en charge des employés """
+    """ Repository en charge des employés. """
 
 
 
@@ -42,7 +42,7 @@ class EmployeeRepository:
 
 
     def find_by_name(self, name: str) -> Employee | None:
-        """ Récupération d'un employé en BDD via son nom """
+        """ Récupération d'un employé en BDD via son nom. """
         conn = self.databaseManager.get_connection()
         try:
             cur = conn.cursor()
@@ -73,7 +73,7 @@ class EmployeeRepository:
 
 
     def find_by_id(self, id: int) -> Employee | None:
-        """ Récupération d'un employé en BDD via son id """
+        """ Récupération d'un employé en BDD via son id. """
         conn = self.databaseManager.get_connection()
         try:
             cur = conn.cursor()
@@ -90,7 +90,7 @@ class EmployeeRepository:
 
     @staticmethod
     def _to_employee(row: sqlite3.Row) -> Employee:
-        """ Renvoi les informations des employés dans un objet employé """
+        """ Renvoi les informations des employés dans un objet employé. """
         return Employee(
             id=row["id"], name=row["name"], role=row["role"], email=row["email"],
             manager_id=row["manager_id"],

@@ -10,7 +10,8 @@ class DatabaseManager:
     """ Gère les connexions à la BDD SQLite. """
 
 
-    # Chemin par défaut de la BDD (constante de classe)
+
+    # Chemin par défaut de la BDD :
     DEFAULT_DB_PATH = Path(__file__).parent / "rh_database.db"
 
 
@@ -20,8 +21,9 @@ class DatabaseManager:
         self.DB_PATH = self.DEFAULT_DB_PATH
 
 
+
     def ensure_database_exists(self) -> None:
-        """ Vérifie que le fichier de base de données existe. """
+        """ Vérifie que le fichier de BDD existe. """
         if not self.DB_PATH.exists():
             raise FileNotFoundError(
                 f"Base introuvable : {self.DB_PATH}. "
@@ -29,10 +31,10 @@ class DatabaseManager:
             )
 
 
+
     def get_connection(self) -> sqlite3.Connection:
-        """ Ouvre une connexion à la BDD et configure le retour des lignes. """
+        """ Ouvre une connexion à la BDD """
         conn = sqlite3.connect(self.DB_PATH)
         conn.row_factory = sqlite3.Row
         return conn
-
 

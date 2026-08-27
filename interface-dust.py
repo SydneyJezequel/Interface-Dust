@@ -26,7 +26,7 @@ HEADERS = {
 def send_message(question: str, conversation_id: str = None) -> dict:
     """Envoie un message (nouvelle conv ou existante) et attend la réponse."""
 
-    # Payload de base pour le message
+    # Payload pour le message
     message_payload = {
         "content": question,
         "mentions": [{"configurationId": f"{DUST_AGENT_SID}"}],
@@ -36,16 +36,16 @@ def send_message(question: str, conversation_id: str = None) -> dict:
         }
     }
 
-    # Si on a déjà une conversation, on poste un nouveau message dedans
+    # Si on a déjà une conversation, on poste un nouveau message dedans :
     if conversation_id:
         url = f"{BASE_URL}/{conversation_id}/messages"
-        payload = message_payload  # Le payload est directement le message
-    # Sinon, on crée une nouvelle conversation
+        payload = message_payload
+    # Sinon, on crée une nouvelle conversation :
     else:
         url = BASE_URL
         payload = {
             "message": message_payload,
-            "blocking": True  # Vrai booléen Python
+            "blocking": True
         }
 
     # 1. Envoi du message
@@ -61,7 +61,7 @@ def send_message(question: str, conversation_id: str = None) -> dict:
     status_url = f"{BASE_URL}/{current_conv_id}"
 
     # 2. Boucle d'attente de la réponse
-    for _ in range(40):  # Un peu plus de temps au cas où la réponse est longue
+    for _ in range(40):
         time.sleep(1.5)
         status_res = requests.get(status_url, headers=HEADERS, timeout=10)
         status_res.raise_for_status()
@@ -69,7 +69,7 @@ def send_message(question: str, conversation_id: str = None) -> dict:
 
         content = status_data["conversation"]["content"]
 
-        # On cherche le dernier message de l'assistant
+        # On cherche le dernier message de l'assistant :
         for message_info in reversed(content):
             if message_info.get("role") == "assistant":
                 if message_info.get("status") == "succeeded":
@@ -79,8 +79,7 @@ def send_message(question: str, conversation_id: str = None) -> dict:
                     }
                 elif message_info.get("status") == "errored":
                     raise Exception("L'agent a rencontré une erreur lors de la génération.")
-                # Si le statut est "generating", on continue d'attendre
-                break  # On a trouvé le dernier message de l'assistant, pas besoin de remonter plus loin
+                break
 
     raise TimeoutError("L'agent Dust a mis trop de temps à répondre.")
 
@@ -90,7 +89,8 @@ def main() -> None:
     print("Dust API Console")
     print("Tape 'exit' pour quitter.\n")
 
-    current_conversation_id = None  # On stocke l'ID ici pour garder l'historique
+    # Stockage de l'ID pour garder l'historique :
+    current_conversation_id = None
 
     while True:
         question = input("Vous : ").strip()
@@ -101,9 +101,9 @@ def main() -> None:
             continue
 
         try:
-            # On passe l'ID de conversation actuel (S'il est None, on en crée une)
+            # On passe l'ID de conversation actuel. Si = None, on en crée un :
             result = send_message(question, current_conversation_id)
-            current_conversation_id = result["conversation_id"]  # On met à jour l'ID
+            current_conversation_id = result["conversation_id"]
 
             print(f"\nDust : {result['answer']}\n")
 

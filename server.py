@@ -7,7 +7,6 @@ from clients.nager_client import NagerHolidayClient
 from exceptions import EmployeeNotFoundError, DatabaseError
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 
 
 
@@ -30,11 +29,10 @@ leave_service = LeaveService(employee_repo, holiday_client)
 
 
 
-
-
 @mcp.tool()
 def get_employee_info(name: str) -> str:
     """ Récupère les informations RH d'un employé via son prénom. """
+
     try:
         emp = employee_service.get_employee(name)
     except EmployeeNotFoundError as e:
@@ -47,7 +45,6 @@ def get_employee_info(name: str) -> str:
         f"Nom: {emp.name.capitalize()}, Rôle: {emp.role}, Email: {emp.email}, "
         f"Manager: {manager}, Pays: {emp.pays_code}, Solde congés: {emp.solde_conges_jours} jour(s)"
     )
-
 
 
 
@@ -119,5 +116,5 @@ def get_team_members(manager_name: str) -> str:
 
 if __name__ == "__main__":
     employee_repo.ensure_database_exists()
-    # Lancement du serveur avec le protocole SSE (Server-Sent Events)
+    # Lancement du serveur :
     mcp.run(transport="streamable-http", host="0.0.0.0", port=8000)

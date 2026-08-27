@@ -4,14 +4,16 @@ from mcp.server import MCPServer
 # Initialisation du serveur MCP
 mcp = MCPServer("ServeurRH")
 
-# Notre "base de données" simulée
+# BDD simulée :
 EMPLOYEES = {
     "alice": {"role": "Développeuse Backend", "email": "alice@entreprise.com", "manager": "Bob"},
     "bob": {"role": "CTO", "email": "bob@entreprise.com", "manager": "CEO"},
     "charlie": {"role": "Designer", "email": "charlie@entreprise.com", "manager": "Alice"}
 }
 
-# Définition de l'outil qui sera exposé à Dust
+
+
+# Outil exposé à Dust :
 @mcp.tool()
 def get_employee_info(name: str) -> str:
     """ Récupère les informations RH d'un employé via son prénom. """
@@ -22,5 +24,5 @@ def get_employee_info(name: str) -> str:
     return f"Employé '{name}' introuvable dans la base de données."
 
 if __name__ == "__main__":
-    # Lancement du serveur avec le protocole SSE (Server-Sent Events)
+    # Lancement du serveur :
     mcp.run(transport="streamable-http", host="0.0.0.0", port=8000)

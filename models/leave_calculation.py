@@ -7,7 +7,7 @@ from datetime import date
 
 @dataclass
 class LeaveCalculation:
-    """  """
+    """ Jours de congé ouvrés pour un employé sur une période donnée. """
     employee_name: str
     pays_code: str
     debut: date
